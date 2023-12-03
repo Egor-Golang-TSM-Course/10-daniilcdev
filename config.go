@@ -26,7 +26,7 @@ func LoadConfig() (*Config, error) {
 		os.Getenv("REPORT_OUT_PATH"),
 		"output report file path")
 
-	logLevel := flag.String("logLevel", "INFO", "minimum log level to count")
+	logLevel := flag.String("minLogLevel", "INFO", "minimum log level to count")
 
 	flag.Parse()
 
