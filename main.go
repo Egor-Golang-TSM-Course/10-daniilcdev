@@ -1,7 +1,16 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+)
 
 func main() {
-	fmt.Println("hello world")
+	config, err := LoadConfig()
+
+	if err != nil {
+		log.Fatalln("wrong configuration:", err)
+	}
+
+	fmt.Println(config)
 }
