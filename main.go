@@ -26,9 +26,10 @@ func main() {
 
 	sources = []inputs.DataInput{
 		inputs.NewStdinPipe(),
+		inputs.NewSourceFile(cfg.SourceFile),
 	}
 
-	println("-> processing inputs")
+	println("-> processing inputs:")
 	for i := range sources {
 		src := sources[i]
 		scanner, err := src.Open()
@@ -39,6 +40,8 @@ func main() {
 		}
 
 		nBytes, err := scan(scanner)
+		src.Close()
+
 		if err != nil {
 			fmt.Printf("### can't process data source: %T, err: %v\n", src, err)
 			continue
@@ -48,6 +51,7 @@ func main() {
 	}
 
 	if len(counts) > 0 {
+		fmt.Println()
 		fmt.Println(counts)
 	}
 }
