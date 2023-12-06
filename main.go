@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"lesson10/counters"
 	"lesson10/inputs"
@@ -30,36 +29,34 @@ func main() {
 	}
 
 	println("-> processing inputs:")
+
 	for i := range sources {
 		src := sources[i]
-		scanner, err := src.Open()
-		fmt.Println()
+		fmt.Printf("input - %T\n", src)
+		nBytes, err := scan(src)
+
 		if err != nil {
-			fmt.Printf("### can't open scanner for source: %T, err: %v\n", src, err)
+			fmt.Printf("\t### can't process data, err: %v\n", err)
 			continue
 		}
 
-		nBytes, err := scan(scanner)
-		src.Close()
+		fmt.Printf("\t### %d bytes processed\n", nBytes)
 
-		if err != nil {
-			fmt.Printf("### can't process data source: %T, err: %v\n", src, err)
-			continue
+		if len(counts) > 0 {
+			fmt.Printf("\t### summary - %v\n", counts)
+			clear(counts)
 		}
-
-		fmt.Printf("### %d bytes processed, source: %T\n", nBytes, src)
-	}
-
-	if len(counts) > 0 {
-		fmt.Println()
-		fmt.Println(counts)
 	}
 }
 
-func scan(scanner *bufio.Scanner) (nBytes int, err error) {
-	// handle 'cat sample_logs.txt | go run .' case...
+func scan(input inputs.DataInput) (nBytes int, err error) {
+	scanner, err := input.Open()
 
-	fmt.Println("### got data via pipe, processing...")
+	if err != nil {
+		return 0, fmt.Errorf("can't open scanner for source: %T, err: %v\n", input, err)
+	}
+
+	defer input.Close()
 
 	for scanner.Scan() {
 		ln := scanner.Text()
@@ -72,8 +69,6 @@ func scan(scanner *bufio.Scanner) (nBytes int, err error) {
 	if err := scanner.Err(); err != nil {
 		return 0, fmt.Errorf("stdin scanner failed - %v", err)
 	}
-
-	fmt.Println("### piped data processed!")
 
 	return nBytes, nil
 }
