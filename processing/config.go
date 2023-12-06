@@ -1,4 +1,4 @@
-package main
+package processing
 
 import (
 	"flag"
@@ -44,6 +44,6 @@ func LoadConfig() (*Config, error) {
 }
 
 func (cfg *Config) String() string {
-	return fmt.Sprintf("SourceFile=%s OutputFle=%s LogLevel=%s ShouldWriteReport=%v",
+	return fmt.Sprintf("-SourceFile=%s\n-OutputFle=%s\n-LogLevel=%s\n-ShouldWriteReport=%v",
 		cfg.SourceFile, cfg.OutputFile, cfg.LogLevel, cfg.WriteToFile)
 }
