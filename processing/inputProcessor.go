@@ -6,26 +6,22 @@ import (
 	"lesson10/inputs"
 )
 
-type Processor interface {
-	Process()
-}
-
 type inputProcessor struct {
 	sources  *[]inputs.DataInput
 	counters *[]counters.Counter
 }
 
-func NewInputProcessor(cgf *Config, inputSrcs *[]inputs.DataInput, cntrs *[]counters.Counter) Processor {
+func NewInputProcessor(inputSrcs *[]inputs.DataInput, cntrs *[]counters.Counter) Processor {
 	return &inputProcessor{
 		sources:  inputSrcs,
 		counters: cntrs,
 	}
 }
 
-func (ip *inputProcessor) Process() {
+func (ip *inputProcessor) Process() Metrics {
 	println("-> processing inputs:")
 
-	counts := map[string]int{}
+	counts := Metrics{}
 	for _, src := range *ip.sources {
 		fmt.Printf("input - %T\n", src)
 		nBytes, err := ip.scan(src, counts)
@@ -39,12 +35,13 @@ func (ip *inputProcessor) Process() {
 
 		if len(counts) > 0 {
 			fmt.Printf("\t### summary - %v\n", counts)
-			clear(counts)
 		}
 	}
+
+	return counts
 }
 
-func (ip *inputProcessor) scan(input inputs.DataInput, counts map[string]int) (nBytes int, err error) {
+func (ip *inputProcessor) scan(input inputs.DataInput, counts Metrics) (nBytes int, err error) {
 	scanner, err := input.Open()
 
 	if err != nil {

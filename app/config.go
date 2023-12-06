@@ -1,4 +1,4 @@
-package processing
+package app
 
 import (
 	"flag"
@@ -41,6 +41,10 @@ func LoadConfig() (*Config, error) {
 		LogLevel:    strings.ToUpper(*logLevel),
 		WriteToFile: *writeReportOut,
 	}, nil
+}
+
+func (cfg *Config) ReportFilePath() string {
+	return cfg.OutputFile
 }
 
 func (cfg *Config) String() string {
