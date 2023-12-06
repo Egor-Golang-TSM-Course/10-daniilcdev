@@ -18,27 +18,36 @@ func NewInputProcessor(inputSrcs *[]inputs.DataInput, cntrs *[]counters.Counter)
 	}
 }
 
-func (ip *inputProcessor) Process() Metrics {
+func (ip *inputProcessor) Process() Summaries {
 	println("-> processing inputs:")
 
-	counts := Metrics{}
+	res := make(Summaries, 0, len(*ip.sources))
 	for _, src := range *ip.sources {
-		fmt.Printf("input - %T\n", src)
-		nBytes, err := ip.scan(src, counts)
+		fmt.Printf("input - %s\n", src.Name())
+
+		m := make(Metrics)
+		nBytes, err := ip.scan(src, m)
 
 		if err != nil {
 			fmt.Printf("\t### can't process data, err: %v\n", err)
 			continue
 		}
 
+		s := &Summary{
+			Source: src.Name(),
+			Values: m,
+		}
+
+		res = append(res, s)
+
 		fmt.Printf("\t### %d bytes processed\n", nBytes)
 
-		if len(counts) > 0 {
-			fmt.Printf("\t### summary - %v\n", counts)
+		if len(m) > 0 {
+			fmt.Printf("\t### summary - %v\n", m)
 		}
 	}
 
-	return counts
+	return res
 }
 
 func (ip *inputProcessor) scan(input inputs.DataInput, counts Metrics) (nBytes int, err error) {

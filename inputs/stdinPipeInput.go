@@ -14,6 +14,10 @@ func NewStdinPipe() DataInput {
 	return &stdinPipeInput{}
 }
 
+func (sfi *stdinPipeInput) Name() string {
+	return "Stdin"
+}
+
 func (spi *stdinPipeInput) Open() (*bufio.Scanner, error) {
 	stat, err := os.Stdin.Stat()
 	if err != nil {

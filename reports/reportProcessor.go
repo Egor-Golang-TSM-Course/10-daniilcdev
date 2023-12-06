@@ -18,13 +18,13 @@ type reportProcessor struct {
 	cfg  ReportConfig
 }
 
-func (rp *reportProcessor) Process() processing.Metrics {
-	m := rp.base.Process()
-	writeMetrics(&m, rp)
-	return m
+func (rp *reportProcessor) Process() processing.Summaries {
+	s := rp.base.Process()
+	writeMetrics(s, rp)
+	return s
 }
 
-func writeMetrics(m *processing.Metrics, rp *reportProcessor) {
+func writeMetrics(sum processing.Summaries, rp *reportProcessor) {
 	dirPath := path.Dir(rp.cfg.ReportFilePath())
 	if _, err := os.Stat(dirPath); errors.Is(err, os.ErrNotExist) {
 		err := os.MkdirAll(dirPath, os.ModePerm)
@@ -41,8 +41,12 @@ func writeMetrics(m *processing.Metrics, rp *reportProcessor) {
 
 	defer file.Close()
 
-	for k, v := range *m {
-		file.WriteString(fmt.Sprintf("%s - %d\n", k, v))
+	for _, m := range sum {
+		file.WriteString(fmt.Sprintf("%s\n", m.Source))
+		for k, v := range m.Values {
+			file.WriteString(fmt.Sprintf("\t%s - %d\n", k, v))
+		}
+		file.WriteString("\n")
 	}
 
 	fmt.Println("report written at path", rp.cfg.ReportFilePath())
