@@ -4,12 +4,13 @@ import (
 	"bufio"
 	"fmt"
 	"lesson10/counters"
+	"lesson10/inputs"
 	"log"
-	"os"
 )
 
 var counts map[string]int
 var fileCounters []counters.Counter
+var sources []inputs.DataInput
 
 func main() {
 	cfg, err := LoadConfig()
@@ -23,9 +24,27 @@ func main() {
 		counters.NewLogLevelCounter(counters.LogLevel(cfg.LogLevel)),
 	}
 
-	_, err = scanPipe()
-	if err != nil {
-		fmt.Printf("can't process piped data: %v\n", err)
+	sources = []inputs.DataInput{
+		inputs.NewStdinPipe(),
+	}
+
+	println("-> processing inputs")
+	for i := range sources {
+		src := sources[i]
+		scanner, err := src.Open()
+		fmt.Println()
+		if err != nil {
+			fmt.Printf("### can't open scanner for source: %T, err: %v\n", src, err)
+			continue
+		}
+
+		nBytes, err := scan(scanner)
+		if err != nil {
+			fmt.Printf("### can't process data source: %T, err: %v\n", src, err)
+			continue
+		}
+
+		fmt.Printf("### %d bytes processed, source: %T\n", nBytes, src)
 	}
 
 	if len(counts) > 0 {
@@ -33,32 +52,21 @@ func main() {
 	}
 }
 
-func scanPipe() (nBytes int64, err error) {
+func scan(scanner *bufio.Scanner) (nBytes int, err error) {
 	// handle 'cat sample_logs.txt | go run .' case...
-
-	stat, err := os.Stdin.Stat()
-	if err != nil {
-		return 0, fmt.Errorf("stdin error - %v", err)
-	}
-
-	nBytes = stat.Size()
-	if nBytes == 0 {
-		return 0, nil
-	}
 
 	fmt.Println("### got data via pipe, processing...")
 
-	scanner := bufio.NewScanner(os.Stdin)
-
 	for scanner.Scan() {
 		ln := scanner.Text()
+		nBytes += len(ln)
 		for _, counter := range fileCounters {
 			counter.Count(ln, counts)
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
-		return 0, fmt.Errorf("### stdin scanner failed - %v", err)
+		return 0, fmt.Errorf("stdin scanner failed - %v", err)
 	}
 
 	fmt.Println("### piped data processed!")
