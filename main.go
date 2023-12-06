@@ -3,62 +3,63 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"lesson10/counters"
 	"log"
 	"os"
-	"strings"
 )
 
+var counts map[string]int
+var fileCounters []counters.Counter
+
 func main() {
-	config, err := LoadConfig()
+	cfg, err := LoadConfig()
 
 	if err != nil {
 		log.Fatalln("wrong configuration:", err)
 	}
-	fmt.Println(config)
-	err = scanPipe(config)
+
+	counts = make(map[string]int, 3)
+	fileCounters = []counters.Counter{
+		counters.NewLogLevelCounter(counters.LogLevel(cfg.LogLevel)),
+	}
+
+	nBytes, err := scanPipe()
 	if err != nil {
-		fmt.Printf("can't parse piped data: %v", err)
+		fmt.Printf("can't parse piped data: %v\n", err)
+	}
+
+	if nBytes > 0 {
+		fmt.Printf("N bytes read from stdin: %v\n", nBytes)
+	}
+
+	if len(counts) > 0 {
+		fmt.Println(counts)
 	}
 }
 
-func scanPipe(cfg *Config) error {
+func scanPipe() (nBytes int64, err error) {
 	stat, err := os.Stdin.Stat()
 	if err != nil {
-		return fmt.Errorf("stdin error - %v", err)
-	}
-	if stat.Size() == 0 {
-		return fmt.Errorf("stdin is empty")
+		return 0, fmt.Errorf("stdin error - %v", err)
 	}
 
-	counts := make(map[string]int, 3)
-	match := []string{}
-
-	if cfg.LogLevel == "ERROR" {
-		match = append(match, "ERROR")
-	} else if cfg.LogLevel == "WARNING" {
-		match = append(match, "ERROR", "WARNING")
-	} else if cfg.LogLevel == "INFO" {
-		match = append(match, "INFO", "WARNING", "ERROR")
+	nBytes = stat.Size()
+	if nBytes == 0 {
+		return 0, nil
 	}
 
 	scanner := bufio.NewScanner(os.Stdin)
 
 	for scanner.Scan() {
 		ln := scanner.Text()
-		for _, logLevel := range match {
-			if strings.Contains(ln, logLevel) {
-				counts[logLevel]++
-			}
+		for _, counter := range fileCounters {
+			counter.Count(ln, counts)
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
-		return fmt.Errorf("scanner failed - %v", err)
+		return 0, fmt.Errorf("scanner failed - %v", err)
 	}
 
-	if len(counts) > 0 {
-		fmt.Println(counts)
-	}
-
-	return nil
+	return nBytes, nil
 }

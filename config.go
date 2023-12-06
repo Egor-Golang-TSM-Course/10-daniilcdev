@@ -19,8 +19,7 @@ func LoadConfig() (*Config, error) {
 	sourceFilePath := flag.String("source", "", "source file with logs to analyze")
 
 	val, _ := strconv.ParseBool(os.Getenv("REPORT_OUT"))
-	writeReportOut := flag.Bool("reportOut",
-		val, "should write report to file")
+	writeReportOut := flag.Bool("reportOut", val, "should write report to file")
 
 	outFilePath := flag.String("reportOutPath",
 		os.Getenv("REPORT_OUT_PATH"),
@@ -29,10 +28,6 @@ func LoadConfig() (*Config, error) {
 	logLevel := flag.String("minLogLevel", "INFO", "minimum log level to count")
 
 	flag.Parse()
-
-	if *sourceFilePath == "" {
-		return nil, fmt.Errorf("invalid source file path")
-	}
 
 	if *writeReportOut && *outFilePath == "" {
 		*writeReportOut = false
