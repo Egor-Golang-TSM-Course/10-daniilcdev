@@ -21,8 +21,9 @@ func (sfi *sourceFileInput) Name() string {
 func (sfi *sourceFileInput) Open() (*bufio.Scanner, error) {
 	f, err := os.Open(sfi.fPath)
 	if err != nil {
-
+		return bufio.NewScanner(&emptyReader{}), nil
 	}
+
 	sfi.f = f
 	scanner := bufio.NewScanner(f)
 	return scanner, nil
@@ -34,4 +35,5 @@ func (sfi *sourceFileInput) Close() {
 	}
 
 	sfi.f.Close()
+	sfi.f = nil
 }

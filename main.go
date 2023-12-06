@@ -11,6 +11,9 @@ import (
 )
 
 func main() {
+	// cmd to start from
+	// cat sample_logs.txt | go run . -source=./sample_logs.txt -reportOut=true -reportOutPath=./logs/report.txt
+
 	cfg, err := app.LoadConfig()
 
 	if err != nil {
