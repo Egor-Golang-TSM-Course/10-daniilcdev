@@ -23,13 +23,9 @@ func main() {
 		counters.NewLogLevelCounter(counters.LogLevel(cfg.LogLevel)),
 	}
 
-	nBytes, err := scanPipe()
+	_, err = scanPipe()
 	if err != nil {
-		fmt.Printf("can't parse piped data: %v\n", err)
-	}
-
-	if nBytes > 0 {
-		fmt.Printf("N bytes read from stdin: %v\n", nBytes)
+		fmt.Printf("can't process piped data: %v\n", err)
 	}
 
 	if len(counts) > 0 {
@@ -38,6 +34,8 @@ func main() {
 }
 
 func scanPipe() (nBytes int64, err error) {
+	// handle 'cat sample_logs.txt | go run .' case...
+
 	stat, err := os.Stdin.Stat()
 	if err != nil {
 		return 0, fmt.Errorf("stdin error - %v", err)
@@ -47,6 +45,8 @@ func scanPipe() (nBytes int64, err error) {
 	if nBytes == 0 {
 		return 0, nil
 	}
+
+	fmt.Println("### got data via pipe, processing...")
 
 	scanner := bufio.NewScanner(os.Stdin)
 
@@ -58,8 +58,10 @@ func scanPipe() (nBytes int64, err error) {
 	}
 
 	if err := scanner.Err(); err != nil {
-		return 0, fmt.Errorf("scanner failed - %v", err)
+		return 0, fmt.Errorf("### stdin scanner failed - %v", err)
 	}
+
+	fmt.Println("### piped data processed!")
 
 	return nBytes, nil
 }
